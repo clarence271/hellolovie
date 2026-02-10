@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hello hehe</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:linear-gradient(135deg,#ff9a9e,#fad0c4);
+    height:100vh;
+    overflow:hidden;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+}
+
+/* Main Card */
+.container{
+    background:white;
+    padding:20px;
+    border-radius:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.2);
+    width:90%;
+    max-width:350px;
+    position:relative;
+    z-index:2;
+}
+
+img{
+    width:100%;
+    max-width:250px;
+    border-radius:15px;
+}
+
+h2{
+    min-height:60px;
+}
+
+.buttons{
+    position:relative;
+    height:70px;
+}
+
+button{
+    padding:10px 20px;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+}
+
+#yes{
+    background:#ff4d6d;
+    color:white;
+}
+
+#no{
+    background:#ccc;
+    position:absolute;
+    left:160px;
+}
+
+/* Floating hearts */
+.heart{
+    position:fixed;
+    bottom:-20px;
+    font-size:20px;
+    animation:floatUp 6s linear infinite;
+}
+
+@keyframes floatUp{
+    from{transform:translateY(0); opacity:1;}
+    to{transform:translateY(-110vh); opacity:0;}
+}
+
+/* Love letter modal */
+.modal{
+    position:fixed;
+    top:0; left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.5);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:10;
+}
+
+.modal-content{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    width:90%;
+    max-width:400px;
+}
+
+/* Fireworks canvas */
+canvas{
+    position:fixed;
+    top:0;
+    left:0;
+    pointer-events:none;
+}
+</style>
+</head>
+
+<body>
+
+<audio autoplay loop id="bgMusic">
+    <source src="music.mp3" type="audio/mpeg">
+</audio>
+
+<canvas id="fireworks"></canvas>
+
+<!-- Love Letter Popup -->
+<div class="modal" id="letterModal">
+    <div class="modal-content">
+        <h3>To Aira ❤️</h3>
+        <p>
+            From the moment that i met you, my life becomes brighter.
+            I just wanted to ask something special...
+        </p>
+        <button onclick="startProposal()">Open</button>
+    </div>
+</div>
+
+<div class="container" id="mainCard" style="display:none;">
+    <img id="catImage" src="cat1.jpg">
+    <h2 id="text">Will you be my Valentine? ❤️</h2>
+
+    <div class="buttons">
+        <button id="yes">Yes 💕</button>
+        <button id="no">No</button>
+    </div>
+</div>
+
+<script>
+// open proposal
+function startProposal(){
+    document.getElementById("letterModal").style.display="none";
+    document.getElementById("mainCard").style.display="block";
+
+    document.getElementById("bgMusic").play();
+}
+
+// Floating hearts
+function createHeart(){
+    const heart = document.createElement("div");
+    heart.classList.add("heart");
+    heart.innerText = "❤️";
+    heart.style.left = Math.random() * 100 + "vw";
+    heart.style.fontSize = Math.random()*20 + 15 + "px";
+    heart.style.animationDuration = (Math.random()*3 + 3) + "s";
+
+    document.body.appendChild(heart);
+    setTimeout(()=>heart.remove(),6000);
+}
+setInterval(createHeart,500);
+
+// NO button logic
+const noBtn = document.getElementById("no");
+const yesBtn = document.getElementById("yes");
+const catImage = document.getElementById("catImage");
+const text = document.getElementById("text");
+
+let noClicks = 0;
+
+const states = [
+  {text:"Are you sure? 🥺", img:"cat2.jpg"},
+  {text:"Please think again 😿", img:"cat3.jpg"},
+  {text:"I will be really sad... 💔", img:"cat4.jpg"},
+  {text:"Last chance... 😢", img:"cat5.jpg"}
+];
+
+noBtn.addEventListener("click", () => {
+
+    if(noClicks < states.length){
+        text.innerText = states[noClicks].text;
+        catImage.src = states[noClicks].img;
+    }
+
+    const container = document.querySelector(".container");
+    const maxX = container.clientWidth - noBtn.offsetWidth;
+    const maxY = 50;
+
+    noBtn.style.left = Math.random() * maxX + "px";
+    noBtn.style.top = Math.random() * maxY + "px";
+
+    let scale = 1 - (noClicks * 0.2);
+    if(scale <= 0.1){
+        noBtn.style.display = "none";
+    }else{
+        noBtn.style.transform = `scale(${scale})`;
+    }
+
+    noClicks++;
+});
+
+// YES fireworks
+yesBtn.addEventListener("click", () => {
+    text.innerText = "YAY!!! Iloveyouuuu 💖";
+    catImage.src = "cat6.jpg";
+    noBtn.style.display = "none";
+    launchFireworks();
+});
+
+// Fireworks effect
+const canvas = document.getElementById("fireworks");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let particles = [];
+
+function launchFireworks(){
+    for(let i=0;i<100;i++){
+        particles.push({
+            x:canvas.width/2,
+            y:canvas.height/2,
+            dx:(Math.random()-0.5)*6,
+            dy:(Math.random()-0.5)*6,
+            life:100
+        });
+    }
+    animateFireworks();
+}
+
+function animateFireworks(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach((p,index)=>{
+        p.x+=p.dx;
+        p.y+=p.dy;
+        p.life--;
+
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,3,0,Math.PI*2);
+        ctx.fillStyle="pink";
+        ctx.fill();
+
+        if(p.life<=0) particles.splice(index,1);
+    });
+
+    if(particles.length>0){
+        requestAnimationFrame(animateFireworks);
+    }
+}
+</script>
+
+</body>
+</html>
